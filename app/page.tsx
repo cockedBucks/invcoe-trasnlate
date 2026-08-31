@@ -374,71 +374,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Sticky Header with Mahmoud Cat Logo */}
+      {/* Minimal Header */}
       <Header onClearDb={handleClearAllHistory} hasSavedItems={queue.length > 0} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Mastermind Cat Compact Header Banner */}
-        <div className="sketch-card p-3 sm:p-4 relative overflow-hidden max-w-xl mx-auto wireframe-grid">
-          <div className="tape-strip" style={{ width: '60px', height: '14px', top: '-7px' }} />
-
-          <div className="flex items-center justify-center gap-3.5 relative z-10 text-right">
-            {/* Small Cat Avatar */}
-            <div className="relative group shrink-0">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 border-emerald-400 bg-slate-900 p-0.5 shadow-[2px_2px_0px_0px_#10b981] overflow-hidden">
-                <Image
-                  src="/logo.png"
-                  alt="محمود تسخيت"
-                  width={56}
-                  height={56}
-                  className="w-full h-full object-cover rounded-xl"
-                  priority
-                />
-              </div>
-              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-emerald-400 text-slate-950 text-[9px] font-black font-sketch border border-slate-950">
-                تسخيت 🐾
-              </div>
-            </div>
-
-            {/* Compact Title & Short Description */}
-            <div className="min-w-0">
-              <h2 className="text-sm sm:text-base font-black text-white tracking-tight font-cairo leading-tight">
-                تسخيت فواتير الـ PDF إلى{' '}
-                <span className="text-emerald-400 underline decoration-wavy decoration-emerald-500/80 decoration-2">
-                  العربية الفصحى
-                </span>
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-400 font-sketch mt-0.5">
-                دفعات حتى 300 فاتورة • أرقام (0-9) • عزل Bidi • مخرجات HTML جاهزة للطباعة 🖨️
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* History Rehydration Alert if loaded from IndexedDB */}
-        {hasSavedHistory && !isProcessing && queue.length > 0 && (
-          <div className="sketch-card-emerald p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-            <div className="flex items-center gap-3 text-xs text-emerald-200 font-sketch font-bold">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span>
-                محمود استرجع <strong>{queue.length} فاتورة</strong> من جلسة العمل السابقة المخزنة على جهازك. كل النتائج محفوظة وجاهزة!
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0 font-sketch">
-              {hasCompletedItems && (
-                <button
-                  onClick={handleExportZip}
-                  className="sketch-btn px-4 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-black shadow-[2px_2px_0px_0px_#000]"
-                >
-                  تنزيل الكل ZIP 📦
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Upload Drop Zone with Wireframe Sketch Styling */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 space-y-5">
+        {/* Upload Drop Zone */}
         <DropZone
           onFilesSelected={handleFilesSelected}
           isProcessing={isProcessing}
@@ -446,7 +387,7 @@ export default function Home() {
           totalFiles={queue.length}
         />
 
-        {/* Statistics & Metric Counters */}
+        {/* Minimal Statistics / Progress */}
         {queue.length > 0 && (
           <StatsCards
             stats={stats}
@@ -456,46 +397,46 @@ export default function Home() {
           />
         )}
 
-        {/* Batch Controls Bar with Hand-drawn Sketch Buttons */}
+        {/* Minimal Action Bar */}
         {queue.length > 0 && (
-          <div className="sketch-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-            {/* Primary Action Buttons (Start, Pause, Cancel) */}
-            <div className="flex flex-wrap items-center gap-2.5 font-sketch">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/40">
+            {/* Primary Actions */}
+            <div className="flex flex-wrap items-center gap-2">
               {!isProcessing ? (
                 <button
                   onClick={handleStartBatch}
                   disabled={!hasPendingItems}
-                  className={`sketch-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-xs transition-all ${
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-colors ${
                     hasPendingItems
-                      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[3px_3px_0px_0px_#000]'
-                      : 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed opacity-60'
+                      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-sm'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
                   }`}
                 >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>ابدأ تسخيت الدفعة ({stats.pending} بالانتظار) 🐾</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>بدء الترجمة ({stats.pending})</span>
                 </button>
               ) : isPaused ? (
                 <button
                   onClick={handleStartBatch}
-                  className="sketch-btn flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-[3px_3px_0px_0px_#000]"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
                 >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>استئناف التسخيت</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>استئناف</span>
                 </button>
               ) : (
                 <button
                   onClick={handlePauseBatch}
-                  className="sketch-btn flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-[3px_3px_0px_0px_#000]"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs"
                 >
-                  <Pause className="w-4 h-4 fill-current" />
-                  <span>إيقاف مؤقت ⏸️</span>
+                  <Pause className="w-3.5 h-3.5 fill-current" />
+                  <span>إيقاف مؤقت</span>
                 </button>
               )}
 
               {isProcessing && (
                 <button
                   onClick={handleCancelBatch}
-                  className="sketch-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-950 hover:bg-red-900 border-2 border-red-500 text-red-200 font-bold text-xs shadow-[2px_2px_0px_0px_#000]"
+                  className="px-3 py-2 rounded-lg bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 text-xs font-medium"
                 >
                   <span>إلغاء</span>
                 </button>
@@ -504,36 +445,33 @@ export default function Home() {
               {hasFailedItems && !isProcessing && (
                 <button
                   onClick={handleRetryAllFailed}
-                  className="sketch-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-amber-500/20 border-2 border-amber-500 text-amber-300 font-bold text-xs shadow-[2px_2px_0px_0px_#000]"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-300 text-xs font-medium"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>إعادة الفاشلة ({stats.error})</span>
                 </button>
               )}
             </div>
 
-            {/* Secondary Export & Cleanup Actions */}
-            <div className="flex flex-wrap items-center gap-2 font-sketch">
+            {/* Secondary Actions */}
+            <div className="flex flex-wrap items-center gap-2">
               {hasCompletedItems && (
                 <button
                   onClick={handleExportZip}
                   disabled={isExportingZip}
-                  className="sketch-btn flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs shadow-[3px_3px_0px_0px_#000] disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs transition-colors disabled:opacity-50"
                 >
-                  <Archive className="w-4 h-4" />
-                  <span>
-                    {isExportingZip ? 'جاري بناء الأرشيف...' : `تنزيل الكل ZIP (${stats.completed + stats.needsReview}) 📦`}
-                  </span>
+                  <Archive className="w-3.5 h-3.5" />
+                  <span>{isExportingZip ? 'جاري التحميل...' : `تنزيل الكل ZIP (${stats.completed + stats.needsReview})`}</span>
                 </button>
               )}
 
               {hasCompletedItems && !isProcessing && (
                 <button
                   onClick={handleClearCompleted}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-bold shadow-[2px_2px_0px_0px_#1e293b] transition-colors"
+                  className="px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs transition-colors"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>تنظيف المكتمل</span>
+                  <span>مسح المكتمل</span>
                 </button>
               )}
             </div>
@@ -548,19 +486,7 @@ export default function Home() {
           onDelete={handleDeleteItem}
           isProcessing={isProcessing}
         />
-
       </main>
-
-      {/* Footer */}
-      <footer className="w-full border-t-2 border-slate-800 bg-[#080d1a] py-6 text-center text-xs text-slate-400 font-sketch">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5 justify-center">
-            <span>مـحـمـود تسخيت • مترجم الفواتير السلكي اليدوي</span>
-            <span className="text-emerald-400">🐾</span>
-          </span>
-          <span className="text-slate-500 font-mono">Modern Standard Arabic • 100% Free Gemini Flash</span>
-        </div>
-      </footer>
 
       {/* Interactive Modal Preview Dialog */}
       {previewItem && (

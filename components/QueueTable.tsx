@@ -15,8 +15,6 @@ import {
   Trash2,
   FileText,
   Search,
-  Ban,
-  Pencil,
 } from 'lucide-react';
 
 interface QueueTableProps {
@@ -33,7 +31,7 @@ function formatDisplayError(error?: string): string {
     const parsed = JSON.parse(error);
     if (parsed.error?.message) {
       if (parsed.error.status === 'UNAVAILABLE' || parsed.error.message.includes('overloaded')) {
-        return 'النموذج مشغول حالياً (503 Overloaded) - اضغط 🔄 لإعادة المحاولة';
+        return 'النموذج مشغول حالياً (503) - اضغط 🔄 لإعادة المحاولة';
       }
       return parsed.error.message;
     }
@@ -41,10 +39,10 @@ function formatDisplayError(error?: string): string {
     // not JSON
   }
   if (error.includes('UNAVAILABLE') || error.includes('overloaded')) {
-    return 'النموذج مشغول حالياً (503 Overloaded) - اضغط 🔄 لإعادة المحاولة';
+    return 'النموذج مشغول حالياً (503) - اضغط 🔄 لإعادة المحاولة';
   }
   if (error.includes('RESOURCE_EXHAUSTED') || error.includes('429')) {
-    return 'تم بلوغ حد الاستخدام (15 RPM) - يرجى الانتظار ثم إعادة المحاولة';
+    return 'تم بلوغ الحد (15 RPM) - يرجى الانتظار';
   }
   return error;
 }
@@ -98,271 +96,220 @@ export const QueueTable: React.FC<QueueTableProps> = ({
     switch (status) {
       case 'completed':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/60 shadow-[2px_2px_0px_0px_#065f46] font-sketch">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>مسخّت ومطابق ✓</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>مطابق</span>
           </span>
         );
       case 'needs_review':
         return (
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-amber-500/20 text-amber-300 border-2 border-amber-500/60 shadow-[2px_2px_0px_0px_#78350f] font-sketch"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 cursor-help"
             title={item.reconciliation?.details || 'الحسابات تحتاج مراجعة'}
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>يحتاج مراجعة ⚠️</span>
+            <AlertTriangle className="w-3 h-3" />
+            <span>مراجعة</span>
           </span>
         );
       case 'processing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-teal-500/20 text-teal-300 border-2 border-teal-400 shadow-[2px_2px_0px_0px_#115e59] font-sketch animate-pulse">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>يسخّت الآن... 🐾</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/30 animate-pulse">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            <span>جاري...</span>
           </span>
         );
       case 'error':
         return (
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-black bg-red-500/20 text-red-300 border-2 border-red-500/60 shadow-[2px_2px_0px_0px_#7f1d1d] font-sketch cursor-help"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/30 cursor-help"
             title={formatDisplayError(item.error)}
           >
-            <XCircle className="w-3.5 h-3.5" />
-            <span>فشل ❌</span>
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-slate-400 border-2 border-slate-700 font-sketch">
-            <Ban className="w-3.5 h-3.5" />
-            <span>ملغي</span>
+            <XCircle className="w-3 h-3" />
+            <span>فشل</span>
           </span>
         );
       case 'pending':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-slate-400 border-2 border-slate-800 shadow-[1px_1px_0px_0px_#1e293b] font-sketch">
-            <Clock className="w-3.5 h-3.5" />
-            <span>في الطابور</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs text-slate-400 bg-slate-900 border border-slate-800">
+            <Clock className="w-3 h-3 text-slate-500" />
+            <span>بالانتظار</span>
           </span>
         );
     }
   };
 
-  if (items.length === 0) {
-    return null;
-  }
+  if (items.length === 0) return null;
 
   return (
-    <div className="sketch-card overflow-hidden">
-      {/* Table Toolbar / Sketch Tabs */}
-      <div className="p-4 border-b-2 border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60">
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 font-sketch">
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
+      {/* Toolbar */}
+      <div className="p-3 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900/60">
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1 text-xs">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border-2 ${
+            className={`px-2.5 py-1 rounded-lg transition-colors ${
               filterStatus === 'all'
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[2px_2px_0px_0px_#000]'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
+                ? 'bg-slate-800 text-white font-bold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             الكل ({items.length})
           </button>
           <button
             onClick={() => setFilterStatus('completed')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border-2 ${
+            className={`px-2.5 py-1 rounded-lg transition-colors ${
               filterStatus === 'completed'
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[2px_2px_0px_0px_#000]'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
+                ? 'bg-slate-800 text-emerald-400 font-bold'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             المكتملة ({items.filter((i) => i.status === 'completed' || i.status === 'needs_review').length})
           </button>
-          <button
-            onClick={() => setFilterStatus('needs_review')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border-2 ${
-              filterStatus === 'needs_review'
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-[2px_2px_0px_0px_#000]'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            تحتاج مراجعة ({items.filter((i) => i.status === 'needs_review').length})
-          </button>
-          <button
-            onClick={() => setFilterStatus('error')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border-2 ${
-              filterStatus === 'error'
-                ? 'bg-red-500 text-slate-950 border-red-400 shadow-[2px_2px_0px_0px_#000]'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            الفاشلة ({items.filter((i) => i.status === 'error').length})
-          </button>
+          {items.some((i) => i.status === 'needs_review') && (
+            <button
+              onClick={() => setFilterStatus('needs_review')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${
+                filterStatus === 'needs_review'
+                  ? 'bg-slate-800 text-amber-400 font-bold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              مراجعة ({items.filter((i) => i.status === 'needs_review').length})
+            </button>
+          )}
+          {items.some((i) => i.status === 'error') && (
+            <button
+              onClick={() => setFilterStatus('error')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${
+                filterStatus === 'error'
+                  ? 'bg-slate-800 text-red-400 font-bold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              فشل ({items.filter((i) => i.status === 'error').length})
+            </button>
+          )}
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[200px] sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
+        {/* Search */}
+        <div className="relative w-full sm:w-56">
+          <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="ابحث عن اسم أو رقم فاتورة..."
+            placeholder="بحث..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pr-9 pl-3 py-1.5 rounded-xl bg-slate-950 border-2 border-slate-800 text-xs text-slate-200 placeholder-slate-500 font-sketch focus:outline-none focus:border-emerald-500"
+            className="w-full pr-8 pl-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
           />
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
+      {/* Table */}
+      <div className="overflow-x-auto">
         <table className="w-full text-right text-xs text-slate-300">
-          <thead className="sticky top-0 z-10 bg-slate-900 border-b-2 border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[11px] font-sketch">
+          <thead className="bg-slate-900/90 border-b border-slate-800 text-slate-400 text-[11px]">
             <tr>
-              <th className="py-3 px-4 w-12 text-center">#</th>
-              <th className="py-3 px-4">مستند الفاتورة</th>
-              <th className="py-3 px-4">حالة التسخيت</th>
-              <th className="py-3 px-4">التدقيق المالي</th>
-              <th className="py-3 px-4">المدة</th>
-              <th className="py-3 px-4 text-left">الإجراءات</th>
+              <th className="py-2.5 px-3 w-10 text-center text-slate-500">#</th>
+              <th className="py-2.5 px-3">الملف</th>
+              <th className="py-2.5 px-3">الحالة</th>
+              <th className="py-2.5 px-3">المبلغ</th>
+              <th className="py-2.5 px-3">الوقت</th>
+              <th className="py-2.5 px-3 text-left">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="divide-y-2 divide-slate-800/60 bg-slate-950/40">
+          <tbody className="divide-y divide-slate-800/50">
             {filteredItems.map((item, idx) => {
               const struct = item.structuredData;
               const rec = item.reconciliation;
               const hasHtml = Boolean(item.resultHtml);
 
               return (
-                <tr
-                  key={item.id}
-                  className={`hover:bg-slate-900/70 transition-colors ${
-                    item.status === 'processing' ? 'bg-emerald-950/20' : ''
-                  }`}
-                >
-                  {/* Row Number */}
-                  <td className="py-3.5 px-4 text-center font-mono text-slate-500">{idx + 1}</td>
+                <tr key={item.id} className="hover:bg-slate-900/50 transition-colors">
+                  <td className="py-2.5 px-3 text-center text-slate-500 font-mono">{idx + 1}</td>
 
-                  {/* File Name & Extracted Metadata */}
-                  <td className="py-3.5 px-4 max-w-xs">
-                    <div className="flex items-start gap-2.5">
-                      <div className="p-2 rounded-xl bg-slate-900 border-2 border-slate-800 text-emerald-400 shrink-0 mt-0.5 shadow-[2px_2px_0px_0px_#10b981]">
-                        <FileText className="w-4 h-4" />
-                      </div>
+                  {/* File name & size */}
+                  <td className="py-2.5 px-3 max-w-xs">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5 text-emerald-400/80 shrink-0" />
                       <div className="min-w-0">
-                        <div className="font-bold text-slate-200 truncate" title={item.fileName}>
+                        <div className="font-medium text-slate-200 truncate" title={item.fileName}>
                           {item.fileName}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5 font-sketch">
-                          <span>{formatBytes(item.fileSize)}</span>
-                          {struct?.invoiceNumber && (
-                            <>
-                              <span>•</span>
-                              <span className="font-mono text-slate-300" dir="ltr">#{struct.invoiceNumber}</span>
-                            </>
-                          )}
-                          {struct?.customerName && (
-                            <>
-                              <span>•</span>
-                              <span className="truncate max-w-[120px]" title={struct.customerName}>
-                                {struct.customerName}
-                              </span>
-                            </>
-                          )}
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          {formatBytes(item.fileSize)}
                         </div>
                       </div>
                     </div>
                   </td>
 
-                  {/* Status Badge */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">{getStatusBadge(item.status, item)}</td>
+                  {/* Status */}
+                  <td className="py-2.5 px-3 whitespace-nowrap">{getStatusBadge(item.status, item)}</td>
 
-                  {/* Financial Reconciliation Check */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
+                  {/* Financial Total */}
+                  <td className="py-2.5 px-3 whitespace-nowrap">
                     {struct?.total !== undefined && struct.total > 0 ? (
-                      <div>
-                        <div className="font-bold text-slate-200 font-mono" dir="ltr">
-                          {struct.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}{' '}
-                          <span className="text-emerald-400 font-bold">{struct.currency || 'USD'}</span>
-                        </div>
-                        {rec && (
-                          <div className="text-[11px] mt-0.5 font-sketch">
-                            {rec.isReconciled ? (
-                              <span className="text-emerald-400 flex items-center gap-1 font-bold">
-                                <CheckCircle2 className="w-3 h-3" />
-                                <span>حسابات سليمة</span>
-                              </span>
-                            ) : (
-                              <span
-                                className="text-amber-400 flex items-center gap-1 truncate max-w-[160px] font-bold"
-                                title={rec.details}
-                              >
-                                <AlertTriangle className="w-3 h-3 shrink-0" />
-                                <span dir="ltr">فارق: {rec.discrepancy.toFixed(2)}</span>
-                              </span>
-                            )}
-                          </div>
-                        )}
+                      <div className="font-mono text-slate-200" dir="ltr">
+                        {struct.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}{' '}
+                        <span className="text-emerald-400 text-[10px]">{struct.currency || 'USD'}</span>
                       </div>
                     ) : item.error ? (
-                      <div className="text-[11px] text-red-400 truncate max-w-[200px] font-sketch" title={formatDisplayError(item.error)}>
+                      <div className="text-[11px] text-red-400 truncate max-w-[160px]" title={formatDisplayError(item.error)}>
                         {formatDisplayError(item.error)}
                       </div>
                     ) : (
-                      <span className="text-slate-600 font-mono">-</span>
+                      <span className="text-slate-600">-</span>
                     )}
                   </td>
 
                   {/* Duration */}
-                  <td className="py-3.5 px-4 whitespace-nowrap font-mono text-slate-400">
-                    {item.durationMs ? `${(item.durationMs / 1000).toFixed(1)} ثانية` : '-'}
+                  <td className="py-2.5 px-3 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                    {item.durationMs ? `${(item.durationMs / 1000).toFixed(1)}s` : '-'}
                   </td>
 
                   {/* Actions */}
-                  <td className="py-3.5 px-4 text-left whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1.5 font-sketch">
-                      {/* Preview HTML */}
+                  <td className="py-2.5 px-3 text-left whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
                       {hasHtml && (
                         <button
                           onClick={() => onPreview(item)}
-                          title="معاينة الفاتورة المعربة"
-                          className="sketch-btn flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs transition-all shadow-[2px_2px_0px_0px_#000]"
+                          title="معاينة"
+                          className="px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-1 transition-colors"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-3 h-3" />
                           <span>معاينة</span>
                         </button>
                       )}
 
-                      {/* Download HTML */}
                       {hasHtml && (
                         <button
                           onClick={() => downloadSingleHtml(item)}
-                          title="تنزيل ملف HTML"
-                          className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 text-slate-300 hover:text-emerald-400 shadow-[2px_2px_0px_0px_#1e293b] transition-colors"
+                          title="تنزيل HTML"
+                          className="p-1 rounded-md bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
                         >
-                          <Download className="w-3.5 h-3.5" />
+                          <Download className="w-3 h-3" />
                         </button>
                       )}
 
-                      {/* Retry */}
                       {(item.status === 'error' || item.status === 'needs_review') && (
                         <button
                           onClick={() => onRetry(item.id)}
                           disabled={isProcessing}
                           title="إعادة المحاولة"
-                          className="p-1.5 rounded-xl bg-slate-900 hover:bg-amber-500/20 border-2 border-slate-700 text-amber-300 shadow-[2px_2px_0px_0px_#1e293b] transition-colors disabled:opacity-50"
+                          className="p-1 rounded-md bg-slate-800/80 hover:bg-amber-500/20 text-amber-300 transition-colors disabled:opacity-50"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" />
+                          <RotateCcw className="w-3 h-3" />
                         </button>
                       )}
 
-                      {/* Delete */}
                       <button
                         onClick={() => onDelete(item.id)}
                         disabled={item.status === 'processing'}
-                        title="حذف من الطابور"
-                        className="p-1.5 rounded-xl bg-slate-900 hover:bg-red-500/20 border-2 border-slate-800 text-slate-500 hover:text-red-400 shadow-[2px_2px_0px_0px_#1e293b] transition-colors disabled:opacity-30"
+                        title="حذف"
+                        className="p-1 rounded-md hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors disabled:opacity-30"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   </td>
