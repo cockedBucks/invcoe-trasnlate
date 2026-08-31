@@ -127,20 +127,40 @@ export default function Home() {
   }, [queue, elapsedTimeMs]);
 
   const handleFilesSelected = (files: File[]) => {
-    const newItems: QueueItem[] = files.map((file) => ({
-      id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      file,
-      fileName: file.name,
-      fileSize: file.size,
-      status: 'pending',
-      progress: 0,
-      retryCount: 0,
-    }));
-
     setQueue((prev) => {
-      const updated = [...prev, ...newItems];
-      saveAllQueueItemsToDb(updated);
-      return updated;
+      const updated = [...prev];
+      const newItems: QueueItem[] = [];
+
+      for (const file of files) {
+        const existingIdx = updated.findIndex(
+          (i) => i.fileName === file.name && (i.status === 'error' || i.status === 'pending') && !i.file
+        );
+        if (existingIdx !== -1) {
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            file,
+            fileSize: file.size,
+            status: 'pending',
+            error: undefined,
+            rawError: undefined,
+            errorCode: undefined,
+          };
+        } else {
+          newItems.push({
+            id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            file,
+            fileName: file.name,
+            fileSize: file.size,
+            status: 'pending',
+            progress: 0,
+            retryCount: 0,
+          });
+        }
+      }
+
+      const finalQueue = [...updated, ...newItems];
+      saveAllQueueItemsToDb(finalQueue);
+      return finalQueue;
     });
   };
 
@@ -149,7 +169,9 @@ export default function Home() {
       return {
         ...item,
         status: 'error',
-        error: 'ملف الفاتورة غير موجود في الذاكرة. يرجى إعادة رفع الملف.',
+        error: 'الملف غير متوفر في الذاكرة. يرجى سحب وإفلات الفاتورة مجدداً.',
+        rawError: 'Error: File blob was not found in browser memory. Please drag and drop the PDF invoice again.',
+        errorCode: 'FILE_NOT_IN_MEMORY',
       };
     }
 

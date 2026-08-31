@@ -4,13 +4,13 @@ import { QueueItem } from './types';
 interface InvoiceDB extends DBSchema {
   queue_items: {
     key: string;
-    value: Omit<QueueItem, 'file'> & { hasFileBlob?: boolean };
+    value: QueueItem;
     indexes: { 'by-status': string; 'by-time': number };
   };
 }
 
 const DB_NAME = 'invoice_translator_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented version to refresh schema if needed
 
 let dbPromise: Promise<IDBPDatabase<InvoiceDB>> | null = null;
 
@@ -34,10 +34,15 @@ export async function saveQueueItemToDb(item: QueueItem): Promise<void> {
   const db = await getDb();
   if (!db) return;
 
-  // We omit the File handle to keep storage lightweight and serializable
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { file, ...serializableItem } = item;
-  await db.put('queue_items', serializableItem);
+  try {
+    // Store item including File / Blob in IndexedDB
+    await db.put('queue_items', item);
+  } catch (err) {
+    console.warn('Failed to store full file in IDB, falling back to metadata:', err);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { file, ...rest } = item;
+    await db.put('queue_items', rest as QueueItem);
+  }
 }
 
 export async function saveAllQueueItemsToDb(items: QueueItem[]): Promise<void> {
@@ -46,9 +51,13 @@ export async function saveAllQueueItemsToDb(items: QueueItem[]): Promise<void> {
 
   const tx = db.transaction('queue_items', 'readwrite');
   for (const item of items) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { file, ...serializableItem } = item;
-    await tx.store.put(serializableItem);
+    try {
+      await tx.store.put(item);
+    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { file, ...rest } = item;
+      await tx.store.put(rest as QueueItem);
+    }
   }
   await tx.done;
 }
@@ -58,10 +67,7 @@ export async function loadQueueItemsFromDb(): Promise<QueueItem[]> {
   if (!db) return [];
 
   const items = await db.getAll('queue_items');
-  return items.map((item) => ({
-    ...item,
-    file: undefined,
-  })) as QueueItem[];
+  return items as QueueItem[];
 }
 
 export async function removeQueueItemFromDb(id: string): Promise<void> {
