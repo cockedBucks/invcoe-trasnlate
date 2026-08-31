@@ -7,6 +7,7 @@ import { DropZone } from '@/components/DropZone';
 import { StatsCards } from '@/components/StatsCards';
 import { QueueTable } from '@/components/QueueTable';
 import { PreviewModal } from '@/components/PreviewModal';
+import { ErrorLogModal } from '@/components/ErrorLogModal';
 import { BatchStats, QueueItem, TranslateApiResponse } from '@/lib/types';
 import { exportBatchAsZip } from '@/lib/zip-export';
 import {
@@ -24,6 +25,7 @@ import {
   Trash2,
   CheckCircle2,
   Sparkles,
+  FileText,
 } from 'lucide-react';
 
 export default function Home() {
@@ -33,6 +35,8 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [activeFileName, setActiveFileName] = useState<string>('');
   const [previewItem, setPreviewItem] = useState<QueueItem | null>(null);
+  const [errorLogItem, setErrorLogItem] = useState<QueueItem | null>(null);
+  const [showAllErrorsLog, setShowAllErrorsLog] = useState<boolean>(false);
   const [hasSavedHistory, setHasSavedHistory] = useState<boolean>(false);
   const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
   const [batchStartTime, setBatchStartTime] = useState<number | null>(null);
@@ -175,6 +179,8 @@ export default function Home() {
           ...item,
           status: 'error',
           error: data.error || `خطأ في الخادم: ${res.statusText} (${res.status})`,
+          rawError: data.rawError || JSON.stringify(data, null, 2),
+          errorCode: data.code || `HTTP_${res.status}`,
           durationMs,
         };
       }
@@ -190,6 +196,8 @@ export default function Home() {
         durationMs: data.durationMs || durationMs,
         completedTime: Date.now(),
         error: undefined,
+        rawError: undefined,
+        errorCode: undefined,
       };
     } catch (err: unknown) {
       const durationMs = Date.now() - startTime;
@@ -205,6 +213,8 @@ export default function Home() {
         ...item,
         status: 'error',
         error: err instanceof Error ? err.message : 'حدث خطأ في الشبكة أثناء الترجمة.',
+        rawError: err instanceof Error ? `${err.name}: ${err.message}${err.stack ? `\nStack: ${err.stack}` : ''}` : String(err),
+        errorCode: 'CLIENT_NETWORK_ERROR',
         durationMs,
       };
     } finally {
@@ -451,6 +461,17 @@ export default function Home() {
                   <span>إعادة الفاشلة ({stats.error})</span>
                 </button>
               )}
+
+              {hasFailedItems && (
+                <button
+                  onClick={() => setShowAllErrorsLog(true)}
+                  title="عرض ونسخ سجل الأخطاء التقني لجميع الملفات الفاشلة"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-300 text-xs font-medium transition-colors"
+                >
+                  <FileText className="w-3 h-3 text-red-400" />
+                  <span>سجل الخطأ ({stats.error})</span>
+                </button>
+              )}
             </div>
 
             {/* Secondary Actions */}
@@ -484,6 +505,7 @@ export default function Home() {
           onPreview={(item) => setPreviewItem(item)}
           onRetry={handleRetryItem}
           onDelete={handleDeleteItem}
+          onErrorLog={(item) => setErrorLogItem(item)}
           isProcessing={isProcessing}
         />
       </main>
@@ -491,6 +513,18 @@ export default function Home() {
       {/* Interactive Modal Preview Dialog */}
       {previewItem && (
         <PreviewModal item={previewItem} onClose={() => setPreviewItem(null)} />
+      )}
+
+      {/* Error Diagnostic Log Modal */}
+      {(errorLogItem || showAllErrorsLog) && (
+        <ErrorLogModal
+          item={errorLogItem}
+          allItems={showAllErrorsLog ? queue : undefined}
+          onClose={() => {
+            setErrorLogItem(null);
+            setShowAllErrorsLog(false);
+          }}
+        />
       )}
     </div>
   );

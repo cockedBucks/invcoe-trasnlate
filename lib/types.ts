@@ -47,6 +47,8 @@ export interface QueueItem {
   structuredData?: StructuredInvoiceData;
   reconciliation?: ReconciliationResult;
   error?: string;
+  rawError?: string;
+  errorCode?: string;
   startTime?: number;
   completedTime?: number;
   durationMs?: number;
@@ -75,6 +77,7 @@ export interface TranslateApiResponse {
   modelUsed?: string;
   durationMs?: number;
   error?: string;
+  rawError?: string;
   code?: string;
   retryAfterMs?: number;
 }

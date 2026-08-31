@@ -129,7 +129,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Translate
           success: false,
           originalName: fileName,
           html: '',
-          error: 'GEMINI_API_KEY is not configured or is using default placeholder in .env.local',
+          error: 'مفتاح GEMINI_API_KEY غير معين في خادم Vercel/Local',
+          rawError: 'Error: GEMINI_API_KEY environment variable is not configured in Vercel project settings or .env.local.',
           code: 'AUTH_MISSING_KEY',
         },
         { status: 401 }
@@ -267,12 +268,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<Translate
 
     if (!responseText) {
       const cleanError = extractCleanErrorMessage(lastError);
+      const rawErrorString =
+        lastError instanceof Error
+          ? `${lastError.name}: ${lastError.message}${lastError.stack ? `\nStack: ${lastError.stack}` : ''}`
+          : String(lastError);
+
       return NextResponse.json(
         {
           success: false,
           originalName: fileName,
           html: '',
           error: cleanError,
+          rawError: rawErrorString,
           code: 'GENERATION_FAILED',
         },
         { status: 500 }

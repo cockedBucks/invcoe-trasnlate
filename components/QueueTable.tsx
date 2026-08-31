@@ -22,6 +22,7 @@ interface QueueTableProps {
   onPreview: (item: QueueItem) => void;
   onRetry: (id: string) => void;
   onDelete: (id: string) => void;
+  onErrorLog?: (item: QueueItem) => void;
   isProcessing: boolean;
 }
 
@@ -52,6 +53,7 @@ export const QueueTable: React.FC<QueueTableProps> = ({
   onPreview,
   onRetry,
   onDelete,
+  onErrorLog,
   isProcessing,
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -120,13 +122,14 @@ export const QueueTable: React.FC<QueueTableProps> = ({
         );
       case 'error':
         return (
-          <span
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/30 cursor-help"
-            title={formatDisplayError(item.error)}
+          <button
+            onClick={() => onErrorLog?.(item)}
+            title="انقر لعرض ونسخ سجل الخطأ"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors cursor-pointer"
           >
             <XCircle className="w-3 h-3" />
-            <span>فشل</span>
-          </span>
+            <span>فشل (عرض السجل)</span>
+          </button>
         );
       case 'pending':
       default:
@@ -300,6 +303,16 @@ export const QueueTable: React.FC<QueueTableProps> = ({
                           className="p-1 rounded-md bg-slate-800/80 hover:bg-amber-500/20 text-amber-300 transition-colors disabled:opacity-50"
                         >
                           <RotateCcw className="w-3 h-3" />
+                        </button>
+                      )}
+
+                      {item.status === 'error' && (
+                        <button
+                          onClick={() => onErrorLog?.(item)}
+                          title="عرض ونسخ سجل الخطأ"
+                          className="p-1 rounded-md bg-red-950/40 hover:bg-red-900/60 border border-red-500/40 text-red-300 transition-colors"
+                        >
+                          <FileText className="w-3 h-3" />
                         </button>
                       )}
 
